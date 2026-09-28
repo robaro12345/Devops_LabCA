@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  drone-server:
+    image: drone/drone:2
+    container_name: drone-server
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - drone-data:/data
+    environment:
+      - DRONE_GITHUB_CLIENT_ID=${DRONE_GITHUB_CLIENT_ID}
+      - DRONE_GITHUB_CLIENT_SECRET=${DRONE_GITHUB_CLIENT_SECRET}
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
+      - DRONE_SERVER_HOST=${DRONE_SERVER_HOST}
+      - DRONE_SERVER_PROTO=${DRONE_SERVER_PROTO:-http}
+      - DRONE_USER_CREATE=username:${DRONE_ADMIN_USER:-admin},admin:true
+      - DRONE_LOGS_DEBUG=true
+    networks:
+      - drone-net
+      - minikube
+
+  drone-runner:
+    image: drone/drone-runner-docker:1
+    container_name: drone-runner
+    restart: always
+    depends_on:
+      - drone-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DRONE_RPC_HOST=drone-server
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NAME=local-docker-runner
+      - DRONE_RUNNER_NETWORKS=minikube
+      - DRONE_RUNNER_PRIVILEGED_IMAGES=plugins/docker,plugins/docker:*
+      - DRONE_LOGS_DEBUG=true
+    networks:
+      - drone-net
+      - minikube
+
+volumes:
+  drone-data:
+
+networks:
+  drone-net:
+    driver: bridge
+  minikube:
+    external: true

@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: drone-deployer
+  namespace: k8s-demo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: drone-deployer-role
+  namespace: k8s-demo
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: drone-deployer-binding
+  namespace: k8s-demo
+subjects:
+  - kind: ServiceAccount
+    name: drone-deployer
+    namespace: k8s-demo
+roleRef:
+  kind: Role
+  name: drone-deployer-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Token secret for Kubernetes v1.24+ service accounts
+apiVersion: v1
+kind: Secret
+metadata:
+  name: drone-deployer-token
+  namespace: k8s-demo
+  annotations:
+    kubernetes.io/service-account.name: drone-deployer
+type: kubernetes.io/service-account-token

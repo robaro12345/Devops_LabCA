@@ -1,0 +1,83 @@
+kind: pipeline
+type: docker
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  # Step 1: Automated backend unit & integration tests
+  - name: test-backend
+    image: node:20-alpine
+    commands:
+      - cd backend
+      - npm ci
+      - npm test
+
+  # Step 2: Frontend production compilation test
+  - name: test-frontend
+    image: node:20-alpine
+    commands:
+      - cd frontend
+      - npm ci
+      - npm run build
+
+  # Step 3: Build & push backend Docker image with deterministic build tag
+  - name: build-backend-image
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: omkarvbhoir/express-k8s-demo
+      tags:
+        - ${DRONE_BUILD_NUMBER}
+        - latest
+      context: backend
+      dockerfile: backend/Dockerfile
+
+  # Step 4: Build & push frontend Docker image with deterministic build tag
+  - name: build-frontend-image
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: omkarvbhoir/react-k8s-demo
+      tags:
+        - ${DRONE_BUILD_NUMBER}
+        - latest
+      context: frontend
+      dockerfile: frontend/Dockerfile
+
+  # Step 5: Automated zero-downtime rolling deployment to Minikube
+  - name: deploy-to-kubernetes
+    image: bitnami/kubectl:latest
+    environment:
+      K8S_TOKEN:
+        from_secret: k8s_token
+    commands:
+      - kubectl config set-cluster minikube --server=https://minikube:8443 --insecure-skip-tls-verify=true
+      - kubectl config set-credentials drone-deployer --token=$K8S_TOKEN
+      - kubectl config set-context default --cluster=minikube --user=drone-deployer --namespace=k8s-demo
+      - kubectl config use-context default
+      - echo "Triggering rolling update for build ${DRONE_BUILD_NUMBER}..."
+      - kubectl set image deployment/backend backend=omkarvbhoir/express-k8s-demo:${DRONE_BUILD_NUMBER} -n k8s-demo
+      - kubectl set env deployment/backend APP_VERSION=build-${DRONE_BUILD_NUMBER} -n k8s-demo
+      - kubectl set image deployment/frontend frontend=omkarvbhoir/react-k8s-demo:${DRONE_BUILD_NUMBER} -n k8s-demo
+      - echo "Waiting for backend rolling update..."
+      - kubectl rollout status deployment/backend -n k8s-demo --timeout=120s
+      - echo "Waiting for frontend rolling update..."
+      - kubectl rollout status deployment/frontend -n k8s-demo --timeout=120s
+      - echo "Deployment complete! Active pods:"
+      - kubectl get pods -n k8s-demo -o wide
+
+trigger:
+  branch:
+    - master
+    - main
+  event:
+    - push

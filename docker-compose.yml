@@ -1,0 +1,34 @@
+# ==============================================================================
+# NOTE: THIS DOCKER COMPOSE FILE IS FOR LOCAL CONTAINER VERIFICATION ONLY!
+# It will NOT be used by Kubernetes or Drone CI/CD.
+# Production deployment will use Kubernetes manifests (k8s/) and Minikube Ingress.
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: dockerhub_username/express-k8s-demo:latest
+    container_name: backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - APP_VERSION=1.0.0
+      - FAIL_HEALTH_CHECK=false
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: dockerhub_username/react-k8s-demo:latest
+    container_name: frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
