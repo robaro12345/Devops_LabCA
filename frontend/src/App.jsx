@@ -119,7 +119,7 @@ export default function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <span className="header-badge">DevOps Viva Project</span>
+        <span className="header-badge">DevOps mini Project</span>
         <h1 className="title">Kubernetes Self-Healing Demo — CI/CD v2</h1>
         <p className="subtitle">
           Full-Stack Microservices Architecture with Auto-Recovery & Rolling Updates
@@ -269,11 +269,10 @@ export default function App() {
               <div key={entry.id} className="log-entry">
                 <span className="log-time">[{entry.time}]</span>
                 <span
-                  className={`log-status ${
-                    entry.result.includes('HEALTHY') || entry.result.includes('INFO') || entry.result.includes('REQ')
+                  className={`log-status ${entry.result.includes('HEALTHY') || entry.result.includes('INFO') || entry.result.includes('REQ')
                       ? 'healthy'
                       : 'unhealthy'
-                  }`}
+                    }`}
                 >
                   {entry.result}
                 </span>
