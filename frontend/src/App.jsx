@@ -120,7 +120,7 @@ export default function App() {
     <div className="app-container">
       <header className="header">
         <span className="header-badge">DevOps mini Project</span>
-        <h1 className="title">Kubernetes Self-Healing Demo — CI/CD v2</h1>
+        <h1 className="title">Kubernetes Self-Healing Demo — CI/CD</h1>
         <p className="subtitle">
           Full-Stack Microservices Architecture with Auto-Recovery & Rolling Updates
         </p>
@@ -270,8 +270,8 @@ export default function App() {
                 <span className="log-time">[{entry.time}]</span>
                 <span
                   className={`log-status ${entry.result.includes('HEALTHY') || entry.result.includes('INFO') || entry.result.includes('REQ')
-                      ? 'healthy'
-                      : 'unhealthy'
+                    ? 'healthy'
+                    : 'unhealthy'
                     }`}
                 >
                   {entry.result}
