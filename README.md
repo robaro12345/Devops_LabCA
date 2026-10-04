@@ -342,7 +342,7 @@ kubectl rollout undo deployment/frontend -n k8s-demo
 - **Fix**: Run `ngrok http 8000` (or `cloudflared tunnel`) and set `DRONE_SERVER_HOST=<subdomain>.ngrok-free.app` with `DRONE_SERVER_PROTO=https`. Update GitHub OAuth and webhook URLs accordingly.
 
 ### 4. Drone Runner Does Not Connect
-- **Cause**: RPC secret mismatch
+- **Cause**: RPC secret mismatch.
 - **Fix**: Verify `DRONE_RPC_SECRET` in `drone-runner` matches `drone-server`. Run `docker logs drone-runner`.
 
 ### 5. Docker Push Fails / Authentication Fails
