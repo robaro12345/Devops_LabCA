@@ -271,7 +271,7 @@ In the Drone UI (**Settings $\rightarrow$ Secrets**), add:
   ```powershell
   kubectl get secret drone-deployer-token -n k8s-demo -o go-template="{{.data.token | base64decode}}"
   ```
-
+~
 ---
 
 ## 8. Pipeline Workflow (`.drone.yml`)
